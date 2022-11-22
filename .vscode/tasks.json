@@ -1,0 +1,38 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "make all",
+            "command": "make",
+            "args": [
+                "all"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "make client",
+            "command": "make",
+            "args": [
+                "client"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "type": "shell",
+            "label": "make server",
+            "command": "make",
+            "args": [
+                "server"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ],
+    "version": "2.0.0"
+}
