@@ -9,7 +9,10 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/client",
-			"args": [],
+			"args": [
+				"${input:serverPID}",
+				"${input:stringToSend}"
+			],
 			"stopAtEntry": false,
 			"cwd": "${fileDirname}",
 			"environment": [],
@@ -51,7 +54,11 @@
 					"description":  "Set Disassembly Flavor to Intel",
 					"text": "-gdb-set disassembly-flavor intel",
 					"ignoreFailures": true
-				}
+				},
+				// {
+				// 	"description": "Ignore SIGUSR1 and SIGUSR2",
+				// 	"text": "handle SIGUSR1 SIGUSR2 nostop noprint pass"
+				// }
 			]
 		}
 
@@ -59,8 +66,20 @@
 	"compounds": [
 		{
 			"name": "Compound",
-			"configurations": ["client","server"],
-			"preLaunchTask": "make all"
+			"configurations": ["server", "client"],
+		}
+	],
+	"inputs": [
+		{
+			"id": "serverPID",
+			"description": "Server PID",
+			"type": "promptString"
+		},
+		{
+			"id": "stringToSend",
+			"description": "String to send to server",
+			"type": "promptString",
+			"default": "MAAAAAH!\n"
 		}
 	]
 }

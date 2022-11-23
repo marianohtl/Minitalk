@@ -47,21 +47,21 @@ int main(int argc, char **argv)
 {
 	static int index;
 	static int index_string;
-	const unsigned char	bit = 0b10000000;
+	int	pid;
 
 	if(argc != 3)
 		return 1;
-
+	pid = ft_atoi(argv[1]);
 	while(argv[2][index_string] != '\0')
 	{
 		while (index < 8)
 		{
-			if((argv[2][index_string] & (bit >> index)) != 0)
-				kill(ft_atoi(argv[1]) , SIGUSR2);
+			if ((argv[2][index_string] >> (7 - index)) & 1)
+				kill(pid, SIGUSR2);
 			else
-				kill(ft_atoi(argv[1]) , SIGUSR1);
+				kill(pid, SIGUSR1);
 			index++;
-			usleep(40);
+			usleep(120);
 		}
 		index = 0;
 		index_string++;
