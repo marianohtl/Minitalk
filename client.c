@@ -45,7 +45,7 @@ int	ft_atoi(const char *nptr)
 	return (result);
 }
 
-void	ok(int signal_number)
+void	release_client(int signal_number)
 {
 	(void) signal_number;
 	g_continue = 0;
@@ -55,7 +55,7 @@ void	initialize_signal_handler(void)
 {
 	struct sigaction	handle;
 
-	handle.sa_handler = &ok;
+	handle.sa_handler = &release_client;
 	sigemptyset(&handle.sa_mask);
 	sigaddset(&handle.sa_mask, SIGUSR1);
 	sigaction(SIGUSR1, &handle, NULL);
