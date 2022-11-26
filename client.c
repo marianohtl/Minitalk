@@ -3,6 +3,8 @@
 #include<signal.h>
 #include<stdio.h>
 
+int	g_continue;
+
 static unsigned int	ft_skip_spaces(const char *nptr)
 {
 	unsigned int	skip;
@@ -46,14 +48,17 @@ int	ft_atoi(const char *nptr)
 void	ok(int signal_number)
 {
 	(void) signal_number;
+	g_continue = 0;
 }
 
-void	initialize_signal_handler(struct sigaction *handle)
+void	initialize_signal_handler(void)
 {
-	handle->sa_handler = &ok;
-	sigemptyset(&handle->sa_mask);
-	sigaddset(&handle->sa_mask, SIGUSR1);
-	sigaction(SIGUSR1, handle, NULL);
+	struct sigaction	handle;
+
+	handle.sa_handler = &ok;
+	sigemptyset(&handle.sa_mask);
+	sigaddset(&handle.sa_mask, SIGUSR1);
+	sigaction(SIGUSR1, &handle, NULL);
 }
 
 int	main(int argc, char **argv)
@@ -62,22 +67,22 @@ int	main(int argc, char **argv)
 	static int			index_string;
 	int					pid;
 	int					signal_number;
-	struct sigaction	handle;
 
 	if (argc != 3)
 		return (1);
-	initialize_signal_handler(&handle);
+	initialize_signal_handler();
 	pid = ft_atoi(argv[1]);
 	while (argv[2][index_string] != '\0')
 	{
 		while (index < 8)
 		{
 			signal_number = SIGUSR1;
-			if ((argv[2][index_string] >> (7 - index)) & 1)
+			if ((argv[2][index_string] >> (7 - index++)) & 1)
 				signal_number = SIGUSR2;
+			g_continue = 1;
 			kill(pid, signal_number);
-			pause();
-			index++;
+			while (g_continue)
+				usleep(20);
 		}
 		index = 0;
 		index_string++;

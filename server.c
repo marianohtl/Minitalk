@@ -6,39 +6,43 @@
 
 static t_queue	g_queue;
 
+void	decode(void)
+{
+	char	value;
+	int		index;
+
+	index = 0;
+	while (index < 8)
+	{
+		if (index == 0)
+			value = 0;
+		if (g_queue.data[g_queue.start + index] == SIGUSR2)
+			value += 1 << (7 - (index % 8));
+		if (index == 7)
+			write(STDOUT_FILENO, &value, 1);
+		index++;
+	}
+}
+
 void	enqueue(int signal_number, siginfo_t *client_info, void *no_use)
 {
-	int	next;
+	static int	index;
+	int			next;
 
 	(void) no_use;
 	g_queue.data[g_queue.end] = signal_number;
+	index++;
 	next = (g_queue.end + 1) % QUEUE_SIZE;
 	if (next != g_queue.start)
 		g_queue.end = next;
-	usleep(200);
-	kill(client_info->si_pid, SIGUSR1);
-}
-
-void	decode(int size)
-{
-	char	*string;
-	int		index;
-	int		limit;
-
-	if (size < 1)
-		return ;
-	string = calloc(1, sizeof(*string) * size);
-	index = 0;
-	limit = size * 8;
-	while (index < limit)
+	if (index == 8)
 	{
-		g_queue.data[g_queue.start] = g_queue.data[g_queue.start] == SIGUSR2;
-		string[index / 8] += g_queue.data[g_queue.start] << (7 - (index % 8));
-		index++;
-		g_queue.start = (g_queue.start + 1) % QUEUE_SIZE;
+		decode();
+		g_queue.start = (g_queue.start + 8) % QUEUE_SIZE;
+		index = 0;
 	}
-	write(STDOUT_FILENO, string, size);
-	free(string);
+	usleep(60);
+	kill(client_info->si_pid, SIGUSR1);
 }
 
 size_t	ft_strlen(char *string)
@@ -76,15 +80,6 @@ int	main(void)
 
 	initialize(&handle);
 	while (1)
-	{
-		if (g_queue.start / 8 != g_queue.end / 8)
-		{
-			if (g_queue.start > g_queue.end)
-				decode(QUEUE_SIZE - g_queue.start / 8 + g_queue.end / 8);
-			else
-				decode(g_queue.end / 8 - g_queue.start / 8);
-		}
 		pause();
-	}
 	return (0);
 }
