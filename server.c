@@ -1,80 +1,90 @@
-#include<unistd.h>
-#include<stdlib.h>
-#include<signal.h>
-#include<stdio.h>
-#define QUEUE_SIZE 8192
+#include "server.h"
+#include "utils.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include <signal.h>
 
-typedef struct s_queue
-{
-	char *content;
-	int start;
-	int end;
-} t_queue;
+static t_queue	g_queue;
 
-
-static t_queue queue;
-
-void scream(int signal_number)
+void	enqueue(int signal_number, siginfo_t *client_info, void *no_use)
 {
 	int	next;
-	if (signal_number == SIGUSR2)
-		queue.content[queue.end] = 1;
-	else
-		queue.content[queue.end] = 0;
-	next = (queue.end + 1) % QUEUE_SIZE;
-	if (next != queue.start)
-		queue.end = next;
+
+	(void) no_use;
+	g_queue.data[g_queue.end] = signal_number;
+	next = (g_queue.end + 1) % QUEUE_SIZE;
+	if (next != g_queue.start)
+		g_queue.end = next;
+	usleep(200);
+	kill(client_info->si_pid, SIGUSR1);
 }
 
-void	decode(int	size)
+void	decode(int size)
 {
 	char	*string;
 	int		index;
 	int		limit;
 
+	if (size < 1)
+		return ;
 	string = calloc(1, sizeof(*string) * size);
 	index = 0;
 	limit = size * 8;
 	while (index < limit)
 	{
-		string[index / 8] += queue.content[queue.start] << (7 - (index % 8));
+		g_queue.data[g_queue.start] = g_queue.data[g_queue.start] == SIGUSR2;
+		string[index / 8] += g_queue.data[g_queue.start] << (7 - (index % 8));
 		index++;
-		queue.start = (queue.start + 1) % QUEUE_SIZE;
+		g_queue.start = (g_queue.start + 1) % QUEUE_SIZE;
 	}
 	write(STDOUT_FILENO, string, size);
 	free(string);
 }
 
-int main(void)
+size_t	ft_strlen(char *string)
 {
-	struct sigaction handle;
+	size_t	size;
 
-	queue.content = malloc(QUEUE_SIZE * 8);
-	printf("PID: %d\n" , getpid());
+	size = 0;
+	while (*string++ != '\0')
+		size++;
+	return (size);
+}
 
-	handle.sa_handler = &scream;
-	sigemptyset(&handle.sa_mask);
-	sigaddset(&handle.sa_mask, SIGUSR1);
-	sigaddset(&handle.sa_mask, SIGUSR2);
-	sigaction(SIGUSR1, &handle, NULL);
-	sigaction(SIGUSR2, &handle, NULL);
+void	initialize(struct sigaction *handle)
+{
+	char	*pid;
 
-	while(1)
+	g_queue.data = malloc(QUEUE_SIZE * 8);
+	pid = ft_itoa(getpid());
+	write(STDOUT_FILENO, "PID: ", 5);
+	write(STDOUT_FILENO, pid, ft_strlen(pid));
+	write(STDOUT_FILENO, "\n", 1);
+	free(pid);
+	handle->sa_sigaction = &enqueue;
+	handle->sa_flags = SA_SIGINFO;
+	sigemptyset(&handle->sa_mask);
+	sigaddset(&handle->sa_mask, SIGUSR1);
+	sigaddset(&handle->sa_mask, SIGUSR2);
+	sigaction(SIGUSR1, handle, NULL);
+	sigaction(SIGUSR2, handle, NULL);
+}
+
+int	main(void)
+{
+	struct sigaction	handle;
+
+	initialize(&handle);
+	while (1)
 	{
-		// usleep(10);
-		if(queue.start != queue.end)
+		if (g_queue.start / 8 != g_queue.end / 8)
 		{
-			sleep(120);
-			if(queue.start > queue.end)
-			{
-				decode(QUEUE_SIZE - queue.start / 8);
-				decode(queue.end / 8);
-			}
+			if (g_queue.start > g_queue.end)
+				decode(QUEUE_SIZE - g_queue.start / 8 + g_queue.end / 8);
 			else
-				decode(queue.end / 8 - queue.start / 8);
+				decode(g_queue.end / 8 - g_queue.start / 8);
 		}
-		else
-			pause();
+		pause();
 	}
-	return(0);
+	return (0);
 }

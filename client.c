@@ -43,28 +43,44 @@ int	ft_atoi(const char *nptr)
 	return (result);
 }
 
-int main(int argc, char **argv)
+void	ok(int signal_number)
 {
-	static int index;
-	static int index_string;
-	int	pid;
+	(void) signal_number;
+}
 
-	if(argc != 3)
-		return 1;
+void	initialize_signal_handler(struct sigaction *handle)
+{
+	handle->sa_handler = &ok;
+	sigemptyset(&handle->sa_mask);
+	sigaddset(&handle->sa_mask, SIGUSR1);
+	sigaction(SIGUSR1, handle, NULL);
+}
+
+int	main(int argc, char **argv)
+{
+	static int			index;
+	static int			index_string;
+	int					pid;
+	int					signal_number;
+	struct sigaction	handle;
+
+	if (argc != 3)
+		return (1);
+	initialize_signal_handler(&handle);
 	pid = ft_atoi(argv[1]);
-	while(argv[2][index_string] != '\0')
+	while (argv[2][index_string] != '\0')
 	{
 		while (index < 8)
 		{
+			signal_number = SIGUSR1;
 			if ((argv[2][index_string] >> (7 - index)) & 1)
-				kill(pid, SIGUSR2);
-			else
-				kill(pid, SIGUSR1);
+				signal_number = SIGUSR2;
+			kill(pid, signal_number);
+			pause();
 			index++;
-			usleep(120);
 		}
 		index = 0;
 		index_string++;
 	}
-	return(0);
+	return (0);
 }
