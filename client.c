@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   client.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tmariano <tmariano@student.42sp.org.br>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/11/27 04:29:57 by tmariano          #+#    #+#             */
+/*   Updated: 2022/11/27 04:44:46 by tmariano         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include<unistd.h>
 #include<stdlib.h>
 #include<signal.h>
@@ -53,7 +65,7 @@ void	release_client(int signal_number)
 
 void	initialize_signal_handler(void)
 {
-	struct sigaction	handle;
+	static struct sigaction	handle;
 
 	handle.sa_handler = &release_client;
 	sigemptyset(&handle.sa_mask);
@@ -82,7 +94,7 @@ int	main(int argc, char **argv)
 			g_continue = 1;
 			kill(pid, signal_number);
 			while (g_continue)
-				usleep(20);
+				usleep(100);
 		}
 		index = 0;
 		index_string++;

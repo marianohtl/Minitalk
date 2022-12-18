@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: tmariano <tmariano@student.42sp.org.br>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/11/27 04:30:08 by tmariano          #+#    #+#             */
+/*   Updated: 2022/11/27 04:52:54 by tmariano         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "server.h"
 #include "utils.h"
 #include <unistd.h>
@@ -59,7 +71,6 @@ void	initialize(struct sigaction *handle)
 {
 	char	*pid;
 
-	g_queue.data = malloc(QUEUE_SIZE * 8);
 	pid = ft_itoa(getpid());
 	write(STDOUT_FILENO, "PID: ", 5);
 	write(STDOUT_FILENO, pid, ft_strlen(pid));
